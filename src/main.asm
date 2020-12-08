@@ -25,11 +25,14 @@ BALL_VEL_Y EQU $FF84
 SCORE_HIGH EQU $FF85
 SCORE_LOW EQU $FF86
 
+IS_GAME_OVER EQU $FF90
+
 PADDLE_START_POS EQU 24
 MAX_PADDLE_POS EQU 128
 MAX_BALL_POS EQU 152
 MIN_PADDLE_POS EQU 16
 PADDLE_VPOS EQU 128
+SCORE_PER_HIT EQU 1
 
 PADDLE_SPRITE EQU $FE00
 BALL_SPRITE EQU $FE40 ; 20 sprites should be enough for the paddle?
@@ -60,10 +63,21 @@ Start:
 
 .drawFrame
 	ld hl, $9800
-	ld a, BLOCK_TILE
 
 .drawTopBorder
 	
+	ld a, BLOCK_TILE
+	ld [hli], a
+	ld a, $14
+	ld [hli], a
+	inc a
+	ld [hli], a
+	inc a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld a, BLOCK_TILE
 	ld [hli], a
 	ld [hli], a
 	ld [hli], a
@@ -71,14 +85,9 @@ Start:
 	ld [hli], a
 	ld [hli], a
 	ld [hli], a
+	ld a, $17
 	ld [hli], a
-	ld [hli], a
-	ld [hli], a
-	ld [hli], a
-	ld [hli], a
-	ld [hli], a
-	ld [hli], a
-	ld [hli], a
+	ld a, BLOCK_TILE
 	ld [hli], a
 	ld [hli], a
 	ld [hli], a
@@ -242,6 +251,7 @@ Start:
 	ld [PADDLE_POS], a ; paddle go in middle
 	ld a, 1
 	ld [BALL_VEL_Y], a
+	ld a, $80
 	ld a, 24
 	ld [BALL_POS_X], a
 	ld [BALL_POS_Y], a
@@ -249,6 +259,7 @@ Start:
 	ld [SCORE_LOW], a
 	ld [SCORE_HIGH], a
 	ld [BALL_VEL_X], a
+	ld [IS_GAME_OVER], a
 	ld a, 8
 
 
@@ -309,6 +320,8 @@ VBlankHandler:
 	call .drawPaddle
 	call .drawBall
 	call .drawScore
+	;call .drawHighScore
+	call .drawGameOver
 	reti
 
 .setControlsInA
@@ -427,7 +440,7 @@ VBlankHandler:
 	ld [BALL_VEL_Y], a
 
 .incrementScore
-	ld b, $20
+	ld b, SCORE_PER_HIT
 	ld a, [SCORE_LOW]
 	add b
 	daa ; Put it in BCD
@@ -477,20 +490,30 @@ VBlankHandler:
 	ld a, [SCORE_LOW]
 	ld b, a ; store it in b
 	and $0f ; just the lower digit
-	ld [$9803], a ; put this in the ones digit
+	ld [$9807], a ; put this in the ones digit
 	ld a, b
 	swap a ; tens nybl is now the low nybl
 	and $0f ; mask out again
-	ld [$9802], a ; put this in the tens digit
+	ld [$9806], a ; put this in the tens digit
 
 	ld a, [SCORE_HIGH]
 	ld b, a ; store it in b
 	and $0f ; just the lower digit
-	ld [$9801], a ; put this in the hundreds digit
+	ld [$9805], a ; put this in the hundreds digit
 	ld a, b
 	swap a ; thousands nybl is now the low nybl
 	and $0f ; mask out again
-	ld [$9800], a ; put this in the thousands digit
+	ld [$9804], a ; put this in the thousands digit
+	ret
+
+.drawHighScore
+	xor a ;; TODO get the high score
+	;ld a, [IS_GAME_OVER]
+	ld hl, $980F
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
 	ret
 
 .drawDebug
@@ -513,6 +536,65 @@ VBlankHandler:
 	ld a, 2
 .notAbovePaddle
 	ld [$9800], a
+	ret
+
+.drawGameOver
+	ld a, [IS_GAME_OVER]
+	and %10000000
+	cp  %10000000
+	jr z, .isGameOver
+	jr .eraseGameOverMessage
+
+.isGameOver
+	ld a, [IS_GAME_OVER]
+	inc a
+	cp  %10100000
+	jr nz, .fullCycle
+	sub %00100000
+
+.fullCycle
+	ld [IS_GAME_OVER], a
+	and %00010000
+	cp  %00010000
+	jr nz, .gameOverMessageVisible
+
+.eraseGameOverMessage
+	ld hl, $9905
+	ld a, BLANK_TILE
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ret 
+
+.gameOverMessageVisible
+	ld hl, $9905
+	ld a, $18
+	ld [hli], a ; G
+	inc a 
+	ld [hli], a ; A
+	inc a 
+	ld [hli], a ; M
+	inc a 
+	ld [hli], a ; E
+	ld a, BLANK_TILE
+	ld [hli], a ; space
+	ld a, $1C 
+	ld [hli], a ; O
+	inc a 
+	ld [hli], a ; V
+	ld a, $1B
+	ld [hli], a ; E again
+	ld a, $1E
+	ld [hli], a ; R
+	ld a, $1F
+	ld [hli], a ; !!
 	ret
 
 
