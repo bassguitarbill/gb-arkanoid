@@ -246,10 +246,10 @@ Start:
 	ld [BALL_POS_X], a
 	ld [BALL_POS_Y], a
 	xor a
+	ld [SCORE_LOW], a
 	ld [SCORE_HIGH], a
 	ld [BALL_VEL_X], a
 	ld a, 8
-	ld [SCORE_LOW], a
 
 
 	; init display!
@@ -425,9 +425,21 @@ VBlankHandler:
 	xor a
 	sub [hl]
 	ld [BALL_VEL_Y], a
+
+.incrementScore
+	ld b, $20
 	ld a, [SCORE_LOW]
-	inc a
+	add b
+	daa ; Put it in BCD
 	ld [SCORE_LOW], a
+	jr nc, .incrementScoreHigh
+	ld b, 1
+	ld a, [SCORE_HIGH]
+	add b
+	daa 
+	ld [SCORE_HIGH], a
+.incrementScoreHigh
+
 .ballNotAtBottomEdge
 
 	;; TODO collide with the sides of the paddle
@@ -463,44 +475,6 @@ VBlankHandler:
 
 .drawScore
 	ld a, [SCORE_LOW]
-	ld [$9809], a
-	cp 100
-	jr nz, .dontAddHighDigit
-	xor a
-	ld [SCORE_LOW], a
-	ld hl, SCORE_HIGH
-	inc [hl]
-.dontAddHighDigit
-
-	; let's get some BCD thing happening
-	ld a, [SCORE_LOW]
-	ld b, a ; store this
-	and $0f ; mask out lower nybl
-	ld [$9810], a
-	; a is now from $0-$F
-	; if a is $A , add $6
-	cp a, $A
-	jr c, .onesDigitOverflow
-	add 6
-.onesDigitOverflow
-	ld d, a
-	and $0f
-	ld [$9812], a
-	ld a, d
-	add b ; now a has the lower nybl = the ones decimal digit
-				; and the upper nybl = old upper nybl +1 if ones overflowed
-	ld b, a ; keep the lower nybl in b
-	and $F0 ; mask out lower nybl
-	cp a, $A0
-	jr z, .tensDigitOverflow
-	add $60
-.tensDigitOverflow
-	;; TODO move this to the hundreds digit
-	ld c, a ; tens on top, 0 on bottom
-	ld a, b ; pull the lower nybl back in
-	and $0F ; mask it
-	add c ; BDC yo
-	ld [$FF87], a ; DEBUG
 	ld b, a ; store it in b
 	and $0f ; just the lower digit
 	ld [$9803], a ; put this in the ones digit
@@ -508,6 +482,15 @@ VBlankHandler:
 	swap a ; tens nybl is now the low nybl
 	and $0f ; mask out again
 	ld [$9802], a ; put this in the tens digit
+
+	ld a, [SCORE_HIGH]
+	ld b, a ; store it in b
+	and $0f ; just the lower digit
+	ld [$9801], a ; put this in the hundreds digit
+	ld a, b
+	swap a ; thousands nybl is now the low nybl
+	and $0f ; mask out again
+	ld [$9800], a ; put this in the thousands digit
 	ret
 
 .drawDebug
