@@ -247,11 +247,17 @@ Start:
 	ld a, %00100000
 	ld [hli], a ; sprite attributes
 
+
+; +---------------------------------------------------------+
+; |                                                         |
+; |                 INITIALIZE VARIABLES		    |
+; |                                                         |
+; +---------------------------------------------------------+
+
 	ld a, PADDLE_START_POS
 	ld [PADDLE_POS], a ; paddle go in middle
 	ld a, 1
 	ld [BALL_VEL_Y], a
-	ld a, $80
 	ld a, 24
 	ld [BALL_POS_X], a
 	ld [BALL_POS_Y], a
@@ -260,7 +266,6 @@ Start:
 	ld [SCORE_HIGH], a
 	ld [BALL_VEL_X], a
 	ld [IS_GAME_OVER], a
-	ld a, 8
 
 
 	; init display!
