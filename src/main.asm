@@ -439,9 +439,16 @@ VBlankHandler:
 	jr nc, .ballNotAtBottomEdge
 
 	; The ball is bouncing off the top of the paddle
-	ld hl, BALL_VEL_Y
-	xor a
-	sub [hl]
+	; Set the Y velocity to negative, so it doesn't get stuck
+	
+	ld a, [BALL_VEL_Y]
+	ld b, a
+	and $80 ; sign bit
+	cp $80 ; set Z if it's negative, so the ball is traveling up
+	jr z, .ballNotAtBottomEdge
+	; invert the velocity
+	xor a ; a = 0
+	sub b ; a = 0 - b
 	ld [BALL_VEL_Y], a
 
 .incrementScore
