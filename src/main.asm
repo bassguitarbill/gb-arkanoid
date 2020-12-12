@@ -68,16 +68,6 @@ Start:
 	
 	ld a, BLOCK_TILE
 	ld [hli], a
-	ld a, $14
-	ld [hli], a
-	inc a
-	ld [hli], a
-	inc a
-	ld [hli], a
-	ld [hli], a
-	ld [hli], a
-	ld [hli], a
-	ld a, BLOCK_TILE
 	ld [hli], a
 	ld [hli], a
 	ld [hli], a
@@ -85,9 +75,13 @@ Start:
 	ld [hli], a
 	ld [hli], a
 	ld [hli], a
-	ld a, $17
 	ld [hli], a
-	ld a, BLOCK_TILE
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
 	ld [hli], a
 	ld [hli], a
 	ld [hli], a
@@ -346,7 +340,7 @@ VBlankHandler:
 	call .drawPaddle
 	call .drawBall
 	call .drawScore
-	;call .drawHighScore
+	call .drawHighScore
 	call .drawGameOver
 	reti
 
@@ -524,6 +518,14 @@ VBlankHandler:
 	ret
 
 .drawScore
+	ld a, $14 ; SC
+	ld hl, $9801 ; One off from top-left corner
+	ld [hli], a
+	inc a ; OR
+	ld [hli], a
+	inc a ; E:
+	ld [hli], a
+
 	ld a, [SCORE_LOW]
 	ld b, a ; store it in b
 	and $0f ; just the lower digit
@@ -544,6 +546,10 @@ VBlankHandler:
 	ret
 
 .drawHighScore
+	ld a, $17 ; HI:
+	ld hl, $980E
+	ld [hl], a	
+
 	xor a ;; TODO get the high score
 	;ld a, [IS_GAME_OVER]
 	ld hl, $980F
