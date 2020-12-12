@@ -172,7 +172,7 @@ Start:
 	dec b
 	jr nz, .clearBottom
 
-.initSprites
+.initPaddleSprites
 	ld hl, PADDLE_SPRITE
 
 	ld a, PADDLE_VPOS
@@ -247,6 +247,27 @@ Start:
 	ld a, %00100000
 	ld [hli], a ; sprite attributes
 
+
+; zero out the rest of the sprites I think
+; all sprites are between $FE00 and $FE9F
+; if l is ever higher than 9F, we're done
+
+	ld b, $9F
+
+.zeroOutASprite
+	ld a, l ; load the bottom bit into A
+	cp b
+	jr nc, .doneZeroingSprites ; if A is above $9F, we've gone far enough
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	jr .zeroOutASprite	
+
+.doneZeroingSprites
+
+	
 
 ; +---------------------------------------------------------+
 ; |                                                         |
