@@ -1,1 +1,1 @@
-autocmd BufWritePost * !./build.bat
+autocmd BufWritePost * !build.bat

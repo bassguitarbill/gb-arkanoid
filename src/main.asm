@@ -420,6 +420,10 @@ VBlankHandler:
 	ld [BALL_VEL_Y], a
 
 .ballNotAtTopEdge
+
+	; Okay we have to bounce off the side of the paddle I think
+
+
 	ld a, b
 	sub a, PADDLE_VPOS - 8
 	jr c, .ballNotAtBottomEdge
