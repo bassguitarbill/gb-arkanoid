@@ -99,7 +99,7 @@ Start:
 	inc h ; If we're here, L overflowed so we need to inc h
 
 .leftWall
-	ld a, BLOCK_TILE ;; TODO should already be set?
+	ld a, BLOCK_TILE 
 	ld [hli], a
 
 .eighteenBlanks
@@ -470,20 +470,7 @@ VBlankHandler:
 	sub b ; a = 0 - b
 	ld [BALL_VEL_Y], a
 
-.incrementScore
-	ld b, SCORE_PER_HIT
-	ld a, [SCORE_LOW]
-	add b
-	daa ; Put it in BCD
-	ld [SCORE_LOW], a
-	jr nc, .incrementScoreHigh
-	ld b, 1
-	ld a, [SCORE_HIGH]
-	add b
-	daa 
-	ld [SCORE_HIGH], a
-.incrementScoreHigh
-
+	call .incrementScore
 .ballNotAtBottomEdge
 
 	;; TODO collide with the sides of the paddle
@@ -638,6 +625,21 @@ VBlankHandler:
 	ld [hli], a ; R
 	ld a, $1F
 	ld [hli], a ; !!
+	ret
+
+.incrementScore
+	ld b, SCORE_PER_HIT
+	ld a, [SCORE_LOW]
+	add b
+	daa ; Put it in BCD
+	ld [SCORE_LOW], a
+	jr nc, .incrementScoreHigh
+	ld b, 1
+	ld a, [SCORE_HIGH]
+	add b
+	daa 
+	ld [SCORE_HIGH], a
+.incrementScoreHigh
 	ret
 
 
